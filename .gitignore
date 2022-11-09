@@ -350,4 +350,4 @@ MigrationBackup/
 .ionide/
 
 #Logging folder for testing
-Logs/
+LocalLogs/
