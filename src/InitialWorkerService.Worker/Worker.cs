@@ -14,15 +14,31 @@ namespace InitialWorkerService
             this.logsService = logsService;
         }
 
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogWarning("The service has been stoped...");
+
+            LogModel log = new()
+            {
+                Message = $"The service has been stoped at: {DateTime.Now}",
+                CreateTime = DateTime.Now,
+                LogType = EnumLogTypes.Warning
+            };
+
+            await logsService.Create(log);
+
+            await base.StopAsync(cancellationToken);
+        }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+                _logger.LogInformation("Worker running at: {time}", DateTime.Now);
 
                 LogModel log = new()
                 {
-                    Message = $"Worker running at: {DateTimeOffset.Now}",
+                    Message = $"Worker running at: {DateTime.Now}",
                     CreateTime = DateTime.Now,
                     LogType = EnumLogTypes.Information
                 };
