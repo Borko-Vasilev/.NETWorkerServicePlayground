@@ -11,7 +11,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.File(@"C:\Users\borislav.vasilev\ResoluteSoftwareProjects\C#\InitialWorkerService\Logs\LogFile.txt")
+    .WriteTo.File(@"../../LocalLogs/LogFile.txt")
     .CreateLogger();
 
 IHost host = Host.CreateDefaultBuilder(args)
