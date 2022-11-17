@@ -1,5 +1,7 @@
+using Hangfire;
 using InitialWorkerService.Contracts.Logs;
 using InitialWorkerService.Contracts.Logs.Models;
+using InitialWorkerService.Services;
 
 namespace InitialWorkerService
 {
@@ -14,19 +16,18 @@ namespace InitialWorkerService
             this.logsService = logsService;
         }
 
+        public override async Task StartAsync(CancellationToken cancellationToken)
+        {
+            await LoggingMessage($"The service has been started at: {DateTime.Now}", EnumLogTypes.Information, _logger);
+
+            RecurringJob.AddOrUpdate<IWorkService>("message-logging", item => item.DoWork(), Cron.Minutely);
+
+            await base.StartAsync(cancellationToken);
+        }
+
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogWarning("The service has been stoped...");
-
-            LogModel log = new()
-            {
-                Message = $"The service has been stoped at: {DateTime.Now}",
-                CreateTime = DateTime.Now,
-                LogType = EnumLogTypes.Warning
-            };
-
-            await logsService.Create(log);
-
+            await LoggingMessage($"The service has been stoped at: {DateTime.Now}", EnumLogTypes.Warning, _logger);
             await base.StopAsync(cancellationToken);
         }
 
@@ -34,19 +35,42 @@ namespace InitialWorkerService
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTime.Now);
-
-                LogModel log = new()
-                {
-                    Message = $"Worker running at: {DateTime.Now}",
-                    CreateTime = DateTime.Now,
-                    LogType = EnumLogTypes.Information
-                };
-
-                await logsService.Create(log);
-
-                await Task.Delay(5000, stoppingToken);
+                await Task.Delay(1, stoppingToken);
             }
+        }
+
+        private async Task<LogModel> LoggingMessage(string message, EnumLogTypes logType, ILogger<Worker> logger)
+        {
+            switch (logType)
+            {
+                case EnumLogTypes.Success:
+                    logger.LogInformation(message);
+                    break;
+                case EnumLogTypes.Error:
+                    logger.LogError(message);
+                    break;
+                case EnumLogTypes.Warning:
+                    logger.LogWarning(message);
+                    break;
+                case EnumLogTypes.Information:
+                    logger.LogInformation(message);
+                    break;
+                case EnumLogTypes.Fatal:
+                    logger.LogCritical(message);
+                    break;
+                default:
+                    logger.LogInformation(message);
+                    break;
+            }
+
+            LogModel log = new()
+            {
+                Message = message,
+                CreateTime = DateTime.Now,
+                LogType = logType
+            };
+
+            return await logsService.Create(log);
         }
     }
 }
