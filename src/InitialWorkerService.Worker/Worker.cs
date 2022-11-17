@@ -1,7 +1,6 @@
-using Hangfire;
 using InitialWorkerService.Contracts.Logs;
 using InitialWorkerService.Contracts.Logs.Models;
-using InitialWorkerService.Services;
+using InitialWorkerService.Jobs;
 
 namespace InitialWorkerService
 {
@@ -20,7 +19,7 @@ namespace InitialWorkerService
         {
             await LoggingMessage($"The service has been started at: {DateTime.Now}", EnumLogTypes.Information, _logger);
 
-            RecurringJob.AddOrUpdate<IWorkService>("message-logging", item => item.DoWork(), Cron.Minutely);
+            JobScheduler.ScheduleRecurringJob();
 
             await base.StartAsync(cancellationToken);
         }
@@ -28,6 +27,7 @@ namespace InitialWorkerService
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
             await LoggingMessage($"The service has been stoped at: {DateTime.Now}", EnumLogTypes.Warning, _logger);
+
             await base.StopAsync(cancellationToken);
         }
 
@@ -35,7 +35,7 @@ namespace InitialWorkerService
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await Task.Delay(1, stoppingToken);
+                await Task.Delay(5000, stoppingToken);
             }
         }
 

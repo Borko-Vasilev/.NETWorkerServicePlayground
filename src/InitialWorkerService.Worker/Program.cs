@@ -37,6 +37,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         IConfiguration configuration = hostContext.Configuration;
 
         var optionBuilder = new DbContextOptionsBuilder<AppDbContext>();
+
         optionBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
             c => c.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
 
@@ -69,22 +70,23 @@ try
 {
     using (var serviceScope = host.Services.GetService<IServiceScopeFactory>().CreateScope())
     {
-        Log.Information("Running DB Migration Started...");
+        Log.Information("DB Migration Starting...");
 
         var context = serviceScope.ServiceProvider.GetRequiredService<AppDbContext>();
+
         context.Database.Migrate();
 
         Log.Information("DB Migration Complete...");
     }
 
-    Log.Information("Starting the service...");
-
     await host.RunAsync();
+
     return;
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "There was a problem starting this service!");
+
     return;
 }
 finally
