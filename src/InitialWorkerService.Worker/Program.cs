@@ -16,10 +16,11 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .Enrich.FromLogContext()
-    .WriteTo.File(@"../../LocalLogs/LogFile.txt")
+    .WriteTo.File(@"../../LocalLogs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 IHost host = Host.CreateDefaultBuilder(args)
+    .UseWindowsService()
     .ConfigureWebHostDefaults(builder =>
     {
         builder.Configure(app =>
